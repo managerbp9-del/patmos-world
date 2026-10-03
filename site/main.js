@@ -31,7 +31,7 @@ async function start(){
  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;$('world').append(renderer.domElement);
  const scene=new THREE.Scene();const hazeColor=new THREE.Color('#a1aaa1');scene.background=hazeColor.clone();scene.fog=new THREE.FogExp2(hazeColor,.0055);
  const sky=createSky();scene.add(sky.mesh);const sunDirection=new THREE.Vector3(.4,.16,-.85).normalize();
- const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.15,2300);
+ const camera=new THREE.PerspectiveCamera(innerWidth/innerHeight<.85?52:42,innerWidth/innerHeight,.15,2300);
  const hemi=new THREE.HemisphereLight('#b5c4c4','#716859',1.7);scene.add(hemi);
  const sun=new THREE.DirectionalLight('#ffe0a2',3.2);sun.position.set(-180,270,150);sun.castShadow=true;
  sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-260,right:260,top:260,bottom:-260,near:1,far:850});sun.shadow.bias=-.00025;sun.shadow.normalBias=.04;sun.shadow.radius=3;scene.add(sun,sun.target);
@@ -103,7 +103,7 @@ async function start(){
  const seaPoint=new THREE.Vector3(-20,0,7);
  const views={landing:harbor.view,...sanctuaries.views,...coastHubs.views,sea:{target:new THREE.Vector3(-19,1.5,-2),position:new THREE.Vector3(3,5.5,22)}};
  const seaPlace={id:'sea',name:'섬 앞의 바다',point:seaPoint,note:'밧모섬으로 다가가는 바다. 향유고래의 숨과 수평선을 관찰합니다.'};places.push(seaPlace);placeById.sea=seaPlace;
- const fullRadius=()=>1.27*Math.max(360/camera.aspect,340)/(2*Math.tan(THREE.MathUtils.degToRad(21)));
+ const fullRadius=()=>1.27*Math.max(360/camera.aspect,340)/(2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2)));
  const orbit={target:harbor.view.target.clone(),radius:18,theta:0,phi:1.25};
  const reducedMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
  let episodeIndex=1,activePlace='landing',mode='observe',trip=null,paused=reducedMotion,elapsed=0,currentLook=harbor.view.target.clone(),drag=null;
@@ -115,7 +115,7 @@ async function start(){
  const labelFor=e=>e.id==='P'?'프롤로그':e.id==='E'?'에필로그':`${e.chapter}장`;
  const currentEpisode=()=>episodeIndex>=0?JOURNEY[episodeIndex]:null;
  const updateWeatherText=e=>{$('scene-weather').textContent=e?`${e.environment.time} · ${e.environment.weather}`:'늦은 오후 · 바람이 머무는 들판';};
- function fitView(view){const offset=view.position.clone().sub(view.target);if(camera.aspect<.85)offset.multiplyScalar(1.28);return {target:view.target.clone(),position:view.target.clone().add(offset)};}
+ function fitView(view){return {target:view.target.clone(),position:view.position.clone()};}
  function setOrbit(view){orbit.target.copy(view.target);const offset=view.position.clone().sub(view.target);orbit.radius=offset.length();orbit.phi=clamp(Math.acos(offset.y/orbit.radius),.18,1.51);orbit.theta=Math.atan2(offset.x,offset.z);}
  function orbitPosition(){return new THREE.Vector3(orbit.target.x+Math.sin(orbit.theta)*Math.sin(orbit.phi)*orbit.radius,orbit.target.y+Math.cos(orbit.phi)*orbit.radius,orbit.target.z+Math.cos(orbit.theta)*Math.sin(orbit.phi)*orbit.radius);}
  function keepAboveTerrain(p){const g=ground(p.x,p.z);p.y=Math.max(p.y,g?g.height+1.2:.65);return p;}
@@ -173,7 +173,7 @@ async function start(){
  const release=e=>{pointer.delete(e.pointerId);if(!pointer.size)drag=null;};canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);addEventListener('blur',()=>pointer.clear());
  canvas.addEventListener('wheel',e=>{e.preventDefault();if(mode!=='travel')orbit.radius=clamp(orbit.radius*Math.exp(e.deltaY*.001),5,mode==='overview'?1200:80);},{passive:false});
  addEventListener('keydown',e=>{if(e.target.matches('input,textarea')||document.querySelector('dialog[open]'))return;if(e.code==='KeyH')clean();if(e.code==='KeyR')resetView();if(mode==='travel')return;if(e.code==='ArrowLeft'){orbit.theta+=.10;e.preventDefault();}if(e.code==='ArrowRight'){orbit.theta-=.10;e.preventDefault();}if(e.code==='ArrowUp'){orbit.phi=clamp(orbit.phi-.08,.15,1.51);e.preventDefault();}if(e.code==='ArrowDown'){orbit.phi=clamp(orbit.phi+.08,.15,1.51);e.preventDefault();}if(e.code==='Equal')orbit.radius=Math.max(5,orbit.radius*.9);if(e.code==='Minus')orbit.radius=Math.min(mode==='overview'?1200:80,orbit.radius*1.1);});
- addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(mode==='overview')orbit.radius=fullRadius();});
+ addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.fov=camera.aspect<.85?52:42;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(mode==='overview')orbit.radius=fullRadius();});
  addEventListener('hashchange',()=>{const id=location.hash.replace('#chapter-',''),index=JOURNEY.findIndex(e=>e.id===id);if(index>=0&&index!==episodeIndex)selectEpisode(index);});
  const hashId=location.hash.replace('#chapter-','');const initial=JOURNEY.findIndex(e=>e.id===hashId);const initialIndex=initial<0?1:initial;
  camera.position.copy(harbor.view.position);$('loading').hidden=true;selectEpisode(initialIndex,{instant:true});Object.assign(atmosphere,atmosphereGoal);fogColor.copy(targetFog);
