@@ -17,7 +17,7 @@ const waveGLSL=waves.map(w=>`{
 
 export function createMiniSea(shoreTexture, bounds) {
   const uniforms={
-    time:{value:0},wind:{value:.32},rain:{value:0},sunset:{value:0},
+    night:{value:0},time:{value:0},wind:{value:.32},rain:{value:0},sunset:{value:0},
     eye:{value:new THREE.Vector3()},shore:{value:shoreTexture},
     bounds:{value:new THREE.Vector4(bounds.minX*.035,bounds.minZ*.035,bounds.width*.035,bounds.height*.035)},
     reflection:{value:null},reflectionMatrix:{value:new THREE.Matrix4()},
@@ -38,7 +38,7 @@ export function createMiniSea(shoreTexture, bounds) {
     }`,fragmentShader:`
     precision highp float;
     varying vec3 world; varying vec4 reflected;
-    uniform float time,wind,rain,sunset,fogDensity;
+    uniform float time,wind,rain,sunset,fogDensity,night;
     uniform vec3 eye,sunDirection,sunColor,fogColor;
     uniform sampler2D shore,reflection;uniform vec4 bounds;
     const float PI=3.14159265;
@@ -80,7 +80,8 @@ export function createMiniSea(shoreTexture, bounds) {
       float caustic=pow(max(0.,sin(p.x*2.8+sin(p.y*2.4+t*.6))*sin(p.y*3.1-t*.7)),7.);
       col+=vec3(.055,.075,.045)*caustic*(1.-smoothstep(.6,4.5,coast));
 
-      vec3 skyFallback=mix(fogColor,vec3(.115,.17,.20),clamp(reflect(-V,N).y,0.,1.));
+      col*=mix(1.,.13,night);
+      vec3 skyFallback=mix(fogColor,mix(vec3(.115,.17,.20),vec3(.008,.018,.034),night),clamp(reflect(-V,N).y,0.,1.));
       vec3 reflectedColor=skyFallback;
       vec2 refUV=reflected.xy/max(reflected.w,.001);
       refUV+=vec2(gradient.x,-gradient.y)*(.065+.035*fresnel);
@@ -112,7 +113,7 @@ export function createMiniSea(shoreTexture, bounds) {
       float breaker=smoothstep(.72,.98,sin(coast*3.8-t*.85+noise(p*.7)*2.));
       float foam=breaker*(1.-smoothstep(.12,1.1,coast))*smoothstep(-.25,.12,-signedD);
       foam*=smoothstep(.3,.75,noise(p*3.1+vec2(t*.03,0.)));
-      col=mix(col,vec3(.39,.43,.38),foam*.36);
+      col=mix(col,vec3(.39,.43,.38),foam*.36*(1.-night*.85));
       float rainRing=pow(max(0.,sin(length(fract(p*1.3)-.5)*30.-time*11.)),18.);
       col+=rainRing*.022*rain*(1.-smoothstep(20.,85.,distanceToEye));
       col*=mix(vec3(1.),vec3(1.055,.96,.85),sunset*.25);
