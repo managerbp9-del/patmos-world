@@ -1,0 +1,10 @@
+.DS_Store
+Thumbs.db
+node_modules/
+.env*
+*.log
+/deployment-manifest.json
+/deployment-state.json
+/live-validation.json
+/path-validation.json
+/patmos-world-github.zip
