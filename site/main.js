@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import {createGroundSampler} from './terrain.js';
-import {createMiniSea} from './ocean.js';
-import {createSky} from './sky.js';
-import {createHarbor} from './harbor.js';
-import {createSanctuaries} from './sanctuaries.js';
-import {createCoastalHubs} from './coastal-hubs.js';
-import {createVoyage} from './voyage.js';
-import {JOURNEY} from './journey-data.js';
+import {createGroundSampler} from './terrain.js?v=journey-5.1';
+import {createMiniSea} from './ocean.js?v=journey-5.1';
+import {createSky} from './sky.js?v=journey-5.1';
+import {createHarbor} from './harbor.js?v=journey-5.1';
+import {createSanctuaries} from './sanctuaries.js?v=journey-5.1';
+import {createCoastalHubs} from './coastal-hubs.js?v=journey-5.1';
+import {createVoyage} from './voyage.js?v=journey-5.1';
+import {JOURNEY} from './journey-data.js?v=journey-5.1';
 
 const $=id=>document.getElementById(id),clamp=THREE.MathUtils.clamp;
 const S=.035,V=.072; // Render only: shared geographic source remains unchanged.
